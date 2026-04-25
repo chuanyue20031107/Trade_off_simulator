@@ -3,239 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Affective AI Ethics Simulator (Pro Version)</title>
+    <title>Affective AI Pro Dashboard</title>
     <style>
-        /* 极致未来感深色背景 & 全屏红光预警动画定义 */
         :root {
             --bg-color: #050A18;
-            --card-bg: rgba(255, 255, 255, 0.03);
-            --primary-navy: #70A1FF;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --primary-blue: #00D2FF;
             --accent-gold: #D4AF37;
-            --text-main: #E0E6ED;
-            --text-muted: #8898AA;
             --danger-red: #FF4757;
+            --text-main: #E0E6ED;
         }
 
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg-color); color: var(--text-main); display: flex; justify-content: center; padding: 20px; margin: 0; transition: background 0.3s ease; position: relative; overflow-x: hidden; }
-
-        /* 全屏红光闪烁动画 */
-        @keyframes pulse-red {
-            0% { box-shadow: inset 0 0 100px rgba(255, 71, 87, 0); }
-            50% { box-shadow: inset 0 0 150px rgba(255, 71, 87, 0.4); background-color: rgba(255, 71, 87, 0.05); }
-            100% { box-shadow: inset 0 0 100px rgba(255, 71, 87, 0); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; transition: all 0.5s ease; }
+        
+        /* 红光闪烁预警动画 */
+        @keyframes alert-glow {
+            0% { box-shadow: inset 0 0 50px rgba(255,71,87,0); }
+            50% { box-shadow: inset 0 0 150px rgba(255,71,87,0.3); background-color: rgba(255,71,87,0.05); }
+            100% { box-shadow: inset 0 0 50px rgba(255,71,87,0); }
         }
-        
-        /* 警告状态下的body样式 */
-        body.warning-active {
-            animation: pulse-red 1.5s infinite;
-        }
+        body.alert-active { animation: alert-glow 1.5s infinite; }
 
-        .container { max-width: 900px; width: 100%; position: relative; z-index: 10; }
-        h1 { color: #FFF; text-align: center; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; font-size: 2rem; margin-bottom: 30px; }
+        .container { max-width: 900px; width: 100%; }
+        h1 { text-align: center; color: #FFF; text-transform: uppercase; letter-spacing: 3px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 10px; margin-bottom: 30px; }
 
-        /* 高端半透明卡片 */
-        .card { background: var(--card-bg); backdrop-filter: blur(10px); border-radius: 16px; padding: 30px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease, border-color 0.3s ease; }
-        .card:hover { transform: translateY(-3px); border-color: rgba(112, 161, 255, 0.2); }
-        h2 { color: #FFF; font-size: 1.3rem; margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        /* 顶部仪表盘布局 */
+        .dashboard-header { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .gauge-card { background: var(--card-bg); border-radius: 15px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
         
-        /* 图标通用样式 */
-        .icon { width: 24px; height: 24px; fill: var(--primary-navy); }
+        .gauge-svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+        .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+        .gauge-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 0.6s ease, stroke 0.6s ease; }
+        .gauge-value { font-size: 1.8rem; font-weight: bold; margin-top: -85px; margin-bottom: 40px; display: block; }
+        .gauge-label { font-size: 0.9rem; color: #8898AA; }
 
-        /* 进度条增强 */
-        .metric { margin-bottom: 20px; }
-        .metric-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
-        .bar-bg { width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 12px; height: 28px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); }
-        .bar-fill { height: 100%; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 15px; color: white; font-weight: bold; font-size: 0.9rem; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        
-        #acc-fill { background: linear-gradient(90deg, #3742FA, var(--primary-navy)); width: 90%; }
-        #com-fill { background: linear-gradient(90deg, #B8860B, var(--accent-gold)); width: 20%; }
-
-        /* 传感器开关组排版增强 */
-        .switch-group { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px;}
-        .switch-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); transition: background 0.3s ease; }
-        .switch-item:hover { background: rgba(112, 161, 255, 0.05); }
-        .sensor-label { display: flex; align-items: center; gap: 12px; color: var(--text-main); }
-        
-        /* 下拉菜单科技感增强 */
-        .select-wrapper { position: relative; }
-        select { width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background-color: rgba(0,0,0,0.3); color: #FFF; outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; transition: border-color 0.3s ease; }
-        select:focus { border-color: var(--primary-navy); }
-        .select-wrapper::after { content: '▼'; font-size: 0.8rem; color: rgba(255,255,255,0.5); position: absolute; right: 20px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-        
-        /* 警告卡片剧烈抖动 & 升级视觉 */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            20% { transform: translateX(-10px); }
-            40% { transform: translateX(10px); }
-            60% { transform: translateX(-10px); }
-            80% { transform: translateX(10px); }
-            100% { transform: translateX(0); }
+        /* 传感器卡片布局 */
+        .sensor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .sensor-card { 
+            background: rgba(255,255,255,0.08); 
+            border-radius: 12px; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        #warning-box { display: none; background: rgba(255, 193, 7, 0.1); border: 2px solid #FFC107; padding: 20px; margin-top: 25px; border-radius: 10px; color: #FFE082; font-weight: bold; display: flex; align-items: center; gap: 15px; }
+        /* 关键：变暗效果的 CSS */
+        .sensor-card.dimmed {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.02);
+            filter: grayscale(0.8) brightness(0.4);
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .sensor-info { display: flex; align-items: center; gap: 12px; }
+        .sensor-icon { width: 30px; height: 30px; fill: var(--primary-blue); transition: fill 0.4s; }
+        .dimmed .sensor-icon { fill: #555; }
+
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-blue); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* 人群选择卡片 */
+        .demo-card { background: var(--card-bg); border-radius: 15px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); }
+        select { width: 100%; padding: 15px; background: #000; color: #FFF; border: 1px solid #444; border-radius: 8px; font-size: 1rem; outline: none; }
         
-        /* 极度危险状态 */
-        .danger-state { border-color: var(--danger-red) !important; background: rgba(255, 71, 87, 0.1) !important; color: #FFB3B9 !important; animation: shake 0.5s ease; }
-        .warning-icon { width: 32px; height: 32px; fill: #FFC107; }
-        .danger-state .warning-icon { fill: var(--danger-red); }
-        
-        /* 原生开关美化 */
-        input[type="checkbox"] { transform: scale(1.6); cursor: pointer; accent-color: var(--primary-navy); }
+        #warning-msg { display: none; margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 5px solid; align-items: center; gap: 10px; }
+        .warning-shake { animation: shake 0.5s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
-<body>
+<body id="main-body">
 
 <div class="container">
     <h1>Affective AI Ethics Simulator</h1>
 
-    <div class="card">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M17.13,17C15.92,18.85 14.11,20.24 12,20.92C9.89,20.24 8.08,18.85 6.87,17C6.53,16.5 6.24,16 6,15.47C6,13.47 10,12.33 12,12.33C14,12.33 18,13.47 18,15.47C17.76,16 17.47,16.5 17.13,17Z"></path></svg>
-            Real-time System Monitoring
-        </h2>
-        <div class="metric">
-            <div class="metric-header"><span>Overall System Accuracy</span><span id="acc-text">90%</span></div>
-            <div class="bar-bg"><div id="acc-fill" class="bar-fill"></div></div>
+    <div class="dashboard-header">
+        <div class="gauge-card">
+            <svg class="gauge-svg">
+                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                <circle id="acc-gauge" class="gauge-fill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="31.4"></circle>
+            </svg>
+            <span id="acc-val" class="gauge-value">90%</span>
+            <span class="gauge-label">SYSTEM ACCURACY</span>
         </div>
-        <div class="metric">
-            <div class="metric-header"><span>Comfort & Privacy Index</span><span id="com-text">20%</span></div>
-            <div class="bar-bg"><div id="com-fill" class="bar-fill"></div></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M19,13.75V19.75H5V13.75H19M19,11H5C3.34,11 2,12.34 2,14V21C2,22.66 3.34,24 5,24H19C20.66,24 22,22.66 22,21V14C22,12.34 20.66,11 19,11M12,2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4A8,8 0 0,1 20,12H22A10,10 0 0,0 12,2Z"></path></svg>
-            Module 1: Sensor Ablation Analysis
-        </h2>
-        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 25px;">Toggle sensors to explore the trade-off based on ablation experiment data.</p>
-        <div class="switch-group">
-            <div class="switch-item">
-                <span class="sensor-label">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12,2C10.9,2 10,2.9 10,4V6H7C5.9,6 5,6.9 5,8V11H2V13H5V16C5,17.1 5.9,18 7,18H10V20C10,21.1 10.9,22 12,22C13.1,22 14,21.1 14,20V18H17C18.1,18 19,17.1 19,16V13H22V11H19V8C19,6.9 18.1,6 17,6H14V4C14,2.9 13.1,2 12,2M7,8H17V16H7V8Z"></path></svg>
-                    Chest EDA Band
-                </span>
-                <input type="checkbox" id="sensor-chest" checked onchange="updateSim()">
-            </div>
-            <div class="switch-item">
-                <span class="sensor-label">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M17.11 3.99C17.68 5.64 18 7.37 18 9.17S17.68 12.69 17.11 14.34C17.7 15.68 18 17.13 18 18.66c0 1.25-.2 2.45-.57 3.59H6.57C6.2 21.11 6 19.91 6 18.66c0-1.53.3-2.98.89-4.32C6.32 12.69 6 10.96 6 9.17S6.32 5.64 6.89 3.99H17.11M12 7.17A2 2 0 1 0 14 9.17A2 2 0 0 0 12 7.17Z"></path></svg>
-                    Wrist EDA/Temp
-                </span>
-                <input type="checkbox" id="sensor-wrist" checked onchange="updateSim()">
-            </div>
-            <div class="switch-item">
-                <span class="sensor-label">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M17,17H7V10L12,6L17,10V17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"></path></svg>
-                    ECG Patch
-                </span>
-                <input type="checkbox" id="sensor-ecg" checked onchange="updateSim()">
-            </div>
-            <div class="switch-item">
-                <span class="sensor-label">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4M12,10A3,3 0 0,1 15,13A3,3 0 0,1 12,16A3,3 0 0,1 9,13A3,3 0 0,1 12,10M12,18A4,4 0 0,1 16,22A4,4 0 0,1 12,26A4,4 0 0,1 8,22A4,4 0 0,1 12,18Z"></path></svg>
-                    EMG Face Patch
-                </span>
-                <input type="checkbox" id="sensor-emg" checked onchange="updateSim()">
-            </div>
+        <div class="gauge-card">
+            <svg class="gauge-svg">
+                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                <circle id="com-gauge" class="gauge-fill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="251.2"></circle>
+            </svg>
+            <span id="com-val" class="gauge-value">20%</span>
+            <span class="gauge-label">COMFORT & PRIVACY</span>
         </div>
     </div>
 
-    <div class="card" id="demo-card">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24"><path d="M12,5.5A3.5,3.5 0 0,1 15.5,9A3.5,3.5 0 0,1 12,12.5A3.5,3.5 0 0,1 8.5,9A3.5,3.5 0 0,1 12,5.5M5,8C5.56,8 6.08,8.15 6.53,8.42C6.38,9.85 6.8,11.27 7.66,12.38C7.16,13.34 6.16,14 5,14A3,3 0 0,1 2,11A3,3 0 0,1 5,8M19,8A3,3 0 0,1 22,11A3,3 0 0,1 19,14C17.84,14 16.84,13.34 16.34,12.38C17.2,11.27 17.62,9.85 17.47,8.42C17.92,8.15 18.44,8 19,8M5.5,18.25C5.5,16.18 8.41,14.5 12,14.5C15.59,14.5 18.5,16.18 18.5,18.25V20H5.5V18.25M0,20V18.5C0,17.11 1.89,15.94 4.45,15.6C3.86,16.28 3.5,17.22 3.5,18.25V20H0M24,20H20.5V18.25C20.5,17.22 20.14,16.28 19.55,15.6C22.11,15.94 24,17.11 24,18.5V20Z"></path></svg>
-            Module 2: Demographic Stress Test
-        </h2>
-        <p style="font-size: 0.95rem; color: var(--text-muted); margin-top: -10px; margin-bottom: 25px;">Expose the model to diverse demographics to detect inherent algorithmic bias.</p>
-        <div class="select-wrapper">
-            <select id="demographic" onchange="updateSim()">
-                <option value="base">👤 25-35 yrs European (Original Training Group)</option>
-                <option value="asian">👵 65+ yrs Asian Elderly</option>
-                <option value="teen">🧑‍🎤 15 yrs Mediterranean Teen</option>
-            </select>
+    <div class="sensor-grid">
+        <div class="sensor-card" id="card-chest">
+            <div class="sensor-info">
+                <svg class="sensor-icon" viewBox="0 0 24 24"><path d="M12,2C10.9,2 10,2.9 10,4V6H7C5.9,6 5,6.9 5,8V11H2V13H5V16C5,17.1 5.9,18 7,18H10V20C10,21.1 10.9,22 12,22C13.1,22 14,21.1 14,20V18H17C18.1,18 19,17.1 19,16V13H22V11H19V8C19,6.9 18.1,6 17,6H14V4C14,2.9 13.1,2 12,2Z"/></svg>
+                <span>Chest EDA</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="check-chest" checked onchange="update()"><span class="slider"></span></label>
         </div>
-        
-        <div id="warning-box">
-            <svg class="warning-icon" viewBox="0 0 24 24"><path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"></path></svg>
-            <span id="warning-text"></span>
+        <div class="sensor-card" id="card-ecg">
+            <div class="sensor-info">
+                <svg class="sensor-icon" viewBox="0 0 24 24"><path d="M17,17H7V10L12,6L17,10V17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2"/></svg>
+                <span>ECG Patch</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="check-ecg" checked onchange="update()"><span class="slider"></span></label>
         </div>
+        <div class="sensor-card" id="card-emg">
+            <div class="sensor-info">
+                <svg class="sensor-icon" viewBox="0 0 24 24"><path d="M12,10A3,3 0 0,1 15,13A3,3 0 0,1 12,16A3,3 0 0,1 9,13A3,3 0 0,1 12,10"/></svg>
+                <span>EMG Face</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="check-emg" checked onchange="update()"><span class="slider"></span></label>
+        </div>
+        <div class="sensor-card" id="card-wrist">
+            <div class="sensor-info">
+                <svg class="sensor-icon" viewBox="0 0 24 24"><path d="M17.11 3.99C17.68 5.64 18 7.37 18 9.17S17.68 12.69 17.11 14.34"/></svg>
+                <span>Wrist Unit</span>
+            </div>
+            <label class="switch"><input type="checkbox" id="check-wrist" checked onchange="update()"><span class="slider"></span></label>
+        </div>
+    </div>
+
+    <div class="demo-card">
+        <h2>Demographic Stress Test</h2>
+        <select id="select-demo" onchange="update()">
+            <option value="base">25-35 yrs European (Base Group)</option>
+            <option value="elderly">65+ yrs Asian Elderly</option>
+            <option value="teen">15 yrs Mediterranean Teen</option>
+        </select>
+        <div id="warning-msg"></div>
     </div>
 </div>
 
 <script>
-    function updateSim() {
-        const chest = document.getElementById('sensor-chest').checked;
-        const wrist = document.getElementById('sensor-wrist').checked;
-        const ecg = document.getElementById('sensor-ecg').checked;
-        const emg = document.getElementById('sensor-emg').checked;
-        const demo = document.getElementById('demographic').value;
-        const body = document.body;
+    function update() {
+        const chest = document.getElementById('check-chest').checked;
+        const ecg = document.getElementById('check-ecg').checked;
+        const emg = document.getElementById('check-emg').checked;
+        const wrist = document.getElementById('check-wrist').checked;
+        const demo = document.getElementById('select-demo').value;
 
-        let baseAcc = 0;
+        // 处理卡片变暗逻辑 (The "Dim" effect)
+        toggleDim('card-chest', chest);
+        toggleDim('card-ecg', ecg);
+        toggleDim('card-emg', emg);
+        toggleDim('card-wrist', wrist);
+
+        // 计算逻辑
+        let accuracy = 0;
         let comfort = 100;
 
-        // ablation logic
-        if(chest) { baseAcc += 45; comfort -= 30; }
-        if(ecg) { baseAcc += 30; comfort -= 25; }
-        if(wrist) { baseAcc += 14; comfort -= 10; }
-        if(emg) { baseAcc += 1; comfort -= 15; }
+        if(chest) { accuracy += 45; comfort -= 30; }
+        if(ecg) { accuracy += 30; comfort -= 25; }
+        if(wrist) { accuracy += 14; comfort -= 10; }
+        if(emg) { accuracy += 1; comfort -= 15; }
 
-        let finalAcc = baseAcc;
-        const warningBox = document.getElementById('warning-box');
-        const warningText = document.getElementById('warning-text');
-        
-        // Reset states
-        warningBox.style.display = 'flex';
-        warningBox.classList.remove('danger-state');
-        body.classList.remove('warning-active');
-        document.getElementById('demo-card').classList.remove('danger-state');
+        let finalAcc = accuracy;
+        const msg = document.getElementById('warning-msg');
+        const body = document.getElementById('main-body');
+        msg.style.display = 'none';
+        body.classList.remove('alert-active');
 
-        // Bias & Warning Logic
-        if (demo === 'base') {
-            warningText.innerHTML = "STATUS: Optimal. Algorithm running normally; no significant bias risk detected.";
-            warningBox.style.backgroundColor = "rgba(40, 167, 69, 0.1)";
-            warningBox.style.color = "#81C784";
-            warningBox.style.borderColor = "#28A745";
-            warningBox.querySelector('.warning-icon').style.fill = "#28A745";
-        } else if (demo === 'asian') {
-            finalAcc = Math.round(baseAcc * 0.6);
-            warningText.innerHTML = "ALERT: ETHICAL RISK. Baseline biometric mismatch detected. High risk of False Negatives (Undetection) for elderly physiological patterns.";
-            triggerDanger();
-        } else if (demo === 'teen') {
-            finalAcc = Math.round(baseAcc * 0.8);
-            warningText.innerHTML = "WARNING: ETHICAL RISK. High baseline physiological arousal levels. Risk of False Positives (False Alarms) during normative activity.";
-            triggerWarning();
-        }
-
-        function triggerDanger() {
-            warningBox.classList.add('danger-state');
-            document.getElementById('demo-card').classList.add('danger-state');
-            body.classList.add('warning-active'); // 全屏红光预警
-        }
-        
-        function triggerWarning() {
-            warningBox.style.backgroundColor = "rgba(255, 193, 7, 0.1)";
-            warningBox.style.color = "#FFE082";
-            warningBox.style.borderColor = "#FFC107";
-            warningBox.querySelector('.warning-icon').style.fill = "#FFC107";
-        }
-
-        // Update UI Metrics
-        document.getElementById('acc-fill').style.width = finalAcc + '%';
-        document.getElementById('acc-text').innerText = finalAcc + '%';
-        document.getElementById('com-fill').style.width = comfort + '%';
-        document.getElementById('com-text').innerText = comfort + '%';
-
-        // Critical Accuracy visual cue
-        if(finalAcc < 70) {
-            document.getElementById('acc-fill').style.background = `linear-gradient(90deg, #A71D2A, ${document.body.classList.contains('warning-active') ? '#FF4757' : '#A71D2A'})`;
+        if(demo === 'elderly') {
+            finalAcc = Math.round(accuracy * 0.6);
+            showMsg("🚨 ETHICAL RISK: Baseline mismatch; high risk of False Negatives!", "#DC3545");
+            body.classList.add('alert-active');
+        } else if(demo === 'teen') {
+            finalAcc = Math.round(accuracy * 0.8);
+            showMsg("⚠️ WARNING: High baseline arousal; high risk of False Positives!", "#FFC107");
         } else {
-            document.getElementById('acc-fill').style.background = 'linear-gradient(90deg, #3742FA, var(--primary-navy))';
+            showMsg("✅ STATUS: Normal. No demographic bias detected.", "#28A745");
+            msg.style.display = 'flex';
         }
+
+        // 更新仪表盘 (Circular Gauge Updates)
+        updateGauge('acc-gauge', 'acc-val', finalAcc, finalAcc < 70 ? '#FF4757' : '#00D2FF');
+        updateGauge('com-gauge', 'com-val', comfort, '#D4AF37');
     }
 
-    // Initial run
-    updateSim();
+    function toggleDim(id, active) {
+        const el = document.getElementById(id);
+        if(!active) el.classList.add('dimmed');
+        else el.classList.remove('dimmed');
+    }
+
+    function updateGauge(id, textId, val, color) {
+        const circle = document.getElementById(id);
+        const offset = 314 - (314 * val / 100);
+        circle.style.strokeDashoffset = offset;
+        circle.style.stroke = color;
+        document.getElementById(textId).innerText = val + '%';
+        document.getElementById(textId).style.color = color;
+    }
+
+    function showMsg(txt, color) {
+        const msg = document.getElementById('warning-msg');
+        msg.style.display = 'flex';
+        msg.innerText = txt;
+        msg.style.borderColor = color;
+        msg.style.color = color;
+        msg.style.backgroundColor = color + '22';
+        msg.classList.add('warning-shake');
+        setTimeout(() => msg.classList.remove('warning-shake'), 500);
+    }
+
+    function updateSim() { update(); } // 别名兼容
+    update(); // 初始化
 </script>
 
 </body>
