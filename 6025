@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affective AI Ethics Simulator</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #FAFAFA; color: #333; display: flex; justify-content: center; padding: 20px; }
+        .container { max-width: 800px; width: 100%; }
+        h1 { color: #102C57; text-align: center; border-bottom: 2px solid #D4AF37; padding-bottom: 10px; }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { color: #102C57; font-size: 1.2rem; margin-top: 0; }
+        .metric { margin-bottom: 15px; }
+        .bar-bg { width: 100%; background-color: #E0E0E0; border-radius: 8px; height: 24px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; transition: width 0.4s ease, background-color 0.4s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-weight: bold; font-size: 0.85rem;}
+        #acc-fill { background-color: #102C57; width: 90%; }
+        #com-fill { background-color: #D4AF37; width: 20%; }
+        .switch-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;}
+        .switch-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px 15px; border-radius: 8px; border: 1px solid #eee;}
+        select { width: 100%; padding: 12px; font-size: 1rem; border-radius: 8px; border: 1px solid #ccc; color: #102C57; outline: none;}
+        #warning-box { display: none; background-color: #FFF3CD; border-left: 5px solid #FFC107; padding: 15px; margin-top: 20px; border-radius: 4px; color: #856404; font-weight: bold;}
+        .danger { background-color: #F8D7DA !important; border-left-color: #DC3545 !important; color: #721C24 !important;}
+        input[type="checkbox"] { transform: scale(1.5); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Affective AI Ethics Simulator</h1>
+
+    <div class="card">
+        <h2>Real-time System Monitoring</h2>
+        <div class="metric">
+            <label>System Accuracy</label>
+            <div class="bar-bg"><div id="acc-fill" class="bar-fill">90%</div></div>
+        </div>
+        <div class="metric">
+            <label>Comfort & Privacy Index</label>
+            <div class="bar-bg"><div id="com-fill" class="bar-fill">20%</div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Module 1: Sensor Ablation Analysis</h2>
+        <p style="font-size: 0.9rem; color: #666;">Toggle sensors to observe the trade-off between performance and user experience.</p>
+        <div class="switch-group">
+            <div class="switch-item"><span>Chest EDA Band</span> <input type="checkbox" id="sensor-chest" checked onchange="updateSim()"></div>
+            <div class="switch-item"><span>Wrist Sensors (EDA/Temp)</span> <input type="checkbox" id="sensor-wrist" checked onchange="updateSim()"></div>
+            <div class="switch-item"><span>ECG Patch</span> <input type="checkbox" id="sensor-ecg" checked onchange="updateSim()"></div>
+            <div class="switch-item"><span>EMG Face Patch</span> <input type="checkbox" id="sensor-emg" checked onchange="updateSim()"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Module 2: Demographic Stress Test</h2>
+        <p style="font-size: 0.9rem; color: #666;">Test algorithmic bias by deploying the model across different populations.</p>
+        <select id="demographic" onchange="updateSim()">
+            <option value="base">25-35 yrs European (Base Training Group)</option>
+            <option value="asian">65+ yrs Asian Elderly</option>
+            <option value="teen">15 yrs Mediterranean Teen</option>
+        </select>
+        <div id="warning-box"></div>
+    </div>
+</div>
+
+<script>
+    function updateSim() {
+        const chest = document.getElementById('sensor-chest').checked;
+        const wrist = document.getElementById('sensor-wrist').checked;
+        const ecg = document.getElementById('sensor-ecg').checked;
+        const emg = document.getElementById('sensor-emg').checked;
+        const demo = document.getElementById('demographic').value;
+
+        let baseAcc = 0;
+        let comfort = 100;
+
+        if(chest) { baseAcc += 45; comfort -= 30; }
+        if(ecg) { baseAcc += 30; comfort -= 25; }
+        if(wrist) { baseAcc += 14; comfort -= 10; }
+        if(emg) { baseAcc += 1; comfort -= 15; }
+
+        let finalAcc = baseAcc;
+        const warningBox = document.getElementById('warning-box');
+        warningBox.style.display = 'block';
+        warningBox.className = '';
+
+        if (demo === 'base') {
+            warningBox.innerHTML = "✅ Algorithm running normally; no significant bias risk detected.";
+            warningBox.style.backgroundColor = "#D4EDDA";
+            warningBox.style.color = "#155724";
+            warningBox.style.borderLeftColor = "#28A745";
+        } else if (demo === 'asian') {
+            finalAcc = Math.round(baseAcc * 0.6);
+            warningBox.innerHTML = "🚨 ETHICAL RISK: Baseline biometric patterns mismatch; high risk of False Negatives (Undetection)!";
+            warningBox.className = 'danger';
+        } else if (demo === 'teen') {
+            finalAcc = Math.round(baseAcc * 0.8);
+            warningBox.innerHTML = "⚠️ ETHICAL RISK: High baseline arousal levels; high risk of False Positives (False Alarms)!";
+        }
+
+        document.getElementById('acc-fill').style.width = finalAcc + '%';
+        document.getElementById('acc-fill').innerText = finalAcc + '%';
+        document.getElementById('com-fill').style.width = comfort + '%';
+        document.getElementById('com-fill').innerText = comfort + '%';
+        document.getElementById('acc-fill').style.backgroundColor = finalAcc < 70 ? "#DC3545" : "#102C57";
+    }
+    updateSim();
+</script>
+</body>
+</html>
